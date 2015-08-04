@@ -1,0 +1,13 @@
+ListenAddress = ":1234"
+BackendScheme = "https"
+BackendHost = "events.ccc.de"
+
+[[Matches]]
+Match = "https://events.ccc.de"
+Replace = "//localhost:1234"
+
+
+[[Matches]]
+Match = "events.ccc.de"
+Replace = "localhost:1234"
+
