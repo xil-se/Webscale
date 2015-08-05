@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -45,7 +46,7 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 				return nil, err
 			}
 
-			body := string(bin)
+			body := bin
 			for _, v := range conf.Matches {
 				tmpl, err := template.New("replace").Parse(v.Replace)
 				if err != nil {
@@ -58,13 +59,13 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 					log.Printf("Could not parse template: %s with error: %s", v.Replace, err)
 					continue
 				}
-
-				body = strings.Replace(body, v.Match, buf.String(), -1)
+				regx := regexp.MustCompile(v.Match)
+				body = regx.ReplaceAll(body, buf.Bytes())
 			}
 
 			response.Header.Set("Content-Length", strconv.Itoa(len(body)))
 			handling = "handled"
-			response.Body = ioutil.NopCloser(strings.NewReader(string([]byte(body))))
+			response.Body = ioutil.NopCloser(bytes.NewReader(body))
 		}
 	}
 
@@ -80,7 +81,7 @@ func init() {
 
 func main() {
 	if _, err := toml.DecodeFile("config", &conf); err != nil {
-		log.Fatal("Something pooped")
+		log.Fatal(err)
 	}
 
 	ts := &myTransport{}

@@ -2,15 +2,12 @@ ListenAddress = ":1234"
 BackendScheme = "https"
 BackendHost = "events.ccc.de"
 
+
 [[Matches]]
 Match = "https://events.ccc.de"
-Replace = "//localhost:1234"
-
+Replace = "//{{.Host}}"
 
 [[Matches]]
 Match = "events.ccc.de"
-Replace = "localhost:1234"
+Replace = "{{.Hosst}}"
 
-[[Matches]]
-Match = "Call for Participation"
-Replace = "{{.Host}}"
