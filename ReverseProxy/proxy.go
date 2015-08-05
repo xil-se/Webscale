@@ -85,7 +85,7 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 func init() {
 	conf.ListenAddress = ":8080"
 	conf.BackendScheme = "http"
-	conf.BackendHost   = "localhost"
+	conf.BackendHost = "localhost"
 }
 
 func main() {
