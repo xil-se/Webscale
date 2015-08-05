@@ -50,12 +50,12 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 			body := bin
 			var replace []byte
 			for _, v := range conf.Match {
-				tmpl, err := template.New("replace").Parse(v.Replace)
 				if err != nil {
 					log.Printf("Could not parse template: %s with error: %s", v.Replace, err)
 					continue
 				}
 				if !v.DisableTmp {
+					tmpl, err := template.New("replace").Parse(v.Replace)
 					buf := new(bytes.Buffer)
 					err = tmpl.Execute(buf, request)
 					if err != nil {
