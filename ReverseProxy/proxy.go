@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -33,6 +35,9 @@ type Match struct {
 }
 
 var conf Config
+var confPath string
+var vers bool
+var version = "Not set"
 
 func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	response, err := http.DefaultTransport.RoundTrip(request)
@@ -83,13 +88,30 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 }
 
 func init() {
+	flag.BoolVar(
+		&vers,
+		"version",
+		false,
+		"Print version")
+
+	flag.StringVar(
+		&confPath,
+		"config",
+		"./config",
+		"Path to the config file")
+
 	conf.ListenAddress = ":8080"
 	conf.BackendScheme = "http"
 	conf.BackendHost = "localhost"
+	flag.Parse()
 }
 
 func main() {
-	if _, err := toml.DecodeFile("config", &conf); err != nil {
+	if vers {
+		fmt.Printf("Version: %s\n", version)
+		os.Exit(0)
+	}
+	if _, err := toml.DecodeFile(confPath, &conf); err != nil {
 		log.Fatal(err)
 	}
 
