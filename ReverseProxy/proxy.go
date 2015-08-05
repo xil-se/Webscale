@@ -23,12 +23,13 @@ type Config struct {
 	ListenAddress string
 	BackendScheme string
 	BackendHost   string
-	Matches       []Match
+	Match         []Match
 }
 
 type Match struct {
-	Match   string
-	Replace string
+	Search     string
+	Replace    string
+	DisableTmp bool
 }
 
 var conf Config
@@ -47,20 +48,27 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 			}
 
 			body := bin
-			for _, v := range conf.Matches {
+			var replace []byte
+			for _, v := range conf.Match {
 				tmpl, err := template.New("replace").Parse(v.Replace)
 				if err != nil {
 					log.Printf("Could not parse template: %s with error: %s", v.Replace, err)
 					continue
 				}
-				buf := new(bytes.Buffer)
-				err = tmpl.Execute(buf, request)
-				if err != nil {
-					log.Printf("Could not parse template: %s with error: %s", v.Replace, err)
-					continue
+				if !v.DisableTmp {
+					buf := new(bytes.Buffer)
+					err = tmpl.Execute(buf, request)
+					if err != nil {
+						log.Printf("Could not parse template: %s with error: %s", v.Replace, err)
+						continue
+					}
+					replace = buf.Bytes()
+				} else {
+					replace = []byte(v.Replace)
 				}
-				regx := regexp.MustCompile(v.Match)
-				body = regx.ReplaceAll(body, buf.Bytes())
+
+				regx := regexp.MustCompile(v.Search)
+				body = regx.ReplaceAll(body, replace)
 			}
 
 			response.Header.Set("Content-Length", strconv.Itoa(len(body)))

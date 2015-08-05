@@ -3,11 +3,12 @@ BackendScheme = "https"
 BackendHost = "events.ccc.de"
 
 
-[[Matches]]
-Match = "https://events.ccc.de"
+[[Match]]
+Search = "https://events.ccc.de"
 Replace = "//{{.Host}}"
+#DisableTmp = true
 
-[[Matches]]
-Match = "events.ccc.de"
+[[Match]]
+Search = "events.ccc.de"
 Replace = "{{.Hosst}}"
 
