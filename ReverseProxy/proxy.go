@@ -1,13 +1,16 @@
 package main
 
 import (
-	"log"
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httputil"
-	"strings"
 	"strconv"
+	"strings"
+	"text/template"
+
 	"github.com/BurntSushi/toml"
 )
 
@@ -16,14 +19,14 @@ type myTransport struct {
 }
 
 type Config struct {
-	ListenAddress  string
+	ListenAddress string
 	BackendScheme string
 	BackendHost   string
-	Matches []Match
+	Matches       []Match
 }
 
 type Match struct {
-	Match string
+	Match   string
 	Replace string
 }
 
@@ -44,21 +47,32 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 
 			body := string(bin)
 			for _, v := range conf.Matches {
-				body = strings.Replace(body, v.Match, v.Replace, -1)	
+				tmpl, err := template.New("replace").Parse(v.Replace)
+				if err != nil {
+					log.Printf("Could not parse template: %s with error: %s", v.Replace, err)
+					continue
+				}
+				buf := new(bytes.Buffer)
+				err = tmpl.Execute(buf, request)
+				if err != nil {
+					log.Printf("Could not parse template: %s with error: %s", v.Replace, err)
+					continue
+				}
+
+				body = strings.Replace(body, v.Match, buf.String(), -1)
 			}
 
-			response.Header.Set("Content-Length", strconv.Itoa(len(body)) )
+			response.Header.Set("Content-Length", strconv.Itoa(len(body)))
 			handling = "handled"
 			response.Body = ioutil.NopCloser(strings.NewReader(string([]byte(body))))
 		}
 	}
 
-	log.Printf("%s %s %s %s %q %d %s\n", request.RemoteAddr, request.Host, request.Method, request.URL, request.Header.Get("User-Agent"),  response.StatusCode,  handling)
+	log.Printf("%s %s %s %s %q %d %s\n", request.RemoteAddr, request.Host, request.Method, request.URL, request.Header.Get("User-Agent"), response.StatusCode, handling)
 	return response, err
 }
 
-
-func init(){
+func init() {
 	conf.ListenAddress = ":8080"
 	conf.BackendScheme = "http"
 	conf.BackendHost = "localhost"
@@ -73,7 +87,7 @@ func main() {
 
 	director := func(request *http.Request) {
 		request.URL.Scheme = conf.BackendScheme
-		request.URL.Host =   conf.BackendHost
+		request.URL.Host = conf.BackendHost
 	}
 
 	proxy := &httputil.ReverseProxy{Director: director, Transport: ts}

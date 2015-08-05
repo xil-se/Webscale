@@ -11,3 +11,6 @@ Replace = "//localhost:1234"
 Match = "events.ccc.de"
 Replace = "localhost:1234"
 
+[[Matches]]
+Match = "Call for Participation"
+Replace = "{{.Host}}"
