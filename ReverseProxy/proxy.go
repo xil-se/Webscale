@@ -35,10 +35,12 @@ type Match struct {
 	DisableTmp bool
 }
 
-var conf Config
-var confPath string
-var vers bool
-var version = "Not set"
+var (
+	conf     Config
+	confPath string
+	vers     bool
+	version  = "Not set"
+)
 
 const robotstxt = `User-agent: *
 Disallow: /
@@ -78,6 +80,11 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 
 			regx := regexp.MustCompile(v.Search)
 			body = regx.ReplaceAll(body, replace)
+			if response.Header.Get("Location") != "" {
+				response.Header.Set("Location",
+					string(regx.ReplaceAll([]byte(response.Header.Get("Location")),
+						replace)))
+			}
 		}
 
 		response.Header.Set("Content-Length", strconv.Itoa(len(body)))
