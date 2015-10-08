@@ -1,7 +1,7 @@
 ListenAddress = ":1234"
 BackendScheme = "https"
 BackendHost = "events.ccc.de"
-
+ReplaceRobots = false
 
 [[Match]]
 Search = "https://events.ccc.de"
@@ -9,6 +9,10 @@ Replace = "//{{.Host}}"
 #DisableTmp = true
 
 [[Match]]
+Search = "http://events.ccc.de"
+Replace = "//{{.Host}}"
+
+[[Match]]
 Search = "events.ccc.de"
-Replace = "{{.Hosst}}"
+Replace = "{{.Host}}"
 
