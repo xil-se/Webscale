@@ -131,6 +131,7 @@ func main() {
 	director := func(request *http.Request) {
 		request.URL.Scheme = conf.BackendScheme
 		request.URL.Host = conf.BackendHost
+		request.Host = conf.BackendHost
 	}
 
 	proxy := &httputil.ReverseProxy{Director: director, Transport: ts}
