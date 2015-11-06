@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -51,7 +53,16 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	handling := "-"
 	if strings.Contains(response.Header.Get("Content-Type"), "text/") {
 
-		bin, readErr := ioutil.ReadAll(response.Body)
+		var reader io.ReadCloser
+		switch response.Header.Get("Content-Encoding") {
+		case "gzip":
+			reader, err = gzip.NewReader(response.Body)
+			defer reader.Close()
+		default:
+			reader = response.Body
+		}
+
+		bin, readErr := ioutil.ReadAll(reader)
 		if readErr != nil {
 			log.Printf("Error reading: %s", readErr)
 			return nil, readErr
@@ -87,8 +98,10 @@ func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 			}
 		}
 
+		response.Header.Del("Content-Encoding")
 		response.Header.Set("Content-Length", strconv.Itoa(len(body)))
 		handling = "handled"
+
 		response.Body = ioutil.NopCloser(bytes.NewReader(body))
 	}
 
