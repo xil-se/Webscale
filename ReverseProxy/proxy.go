@@ -50,9 +50,14 @@ Disallow: /
 
 func (t *myTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	response, err := http.DefaultTransport.RoundTrip(request)
-	handling := "-"
-	if strings.Contains(response.Header.Get("Content-Type"), "text/") {
 
+	if err != nil {
+		return response, err
+	}
+
+	handling := "-"
+	request.Host = request.Header.Get("Orig-Host")
+	if strings.Contains(response.Header.Get("Content-Type"), "text/") {
 		var reader io.ReadCloser
 		switch response.Header.Get("Content-Encoding") {
 		case "gzip":
@@ -144,6 +149,7 @@ func main() {
 	director := func(request *http.Request) {
 		request.URL.Scheme = conf.BackendScheme
 		request.URL.Host = conf.BackendHost
+		request.Header.Set("Orig-Host", request.Host)
 		request.Host = conf.BackendHost
 	}
 
