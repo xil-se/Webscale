@@ -1,0 +1,30 @@
+# Maintainer: David Plassmann <david@plassmann.biz>
+pkgname=xil-proxy
+pkgver=20151109
+pkgrel=1
+pkgdesc="A reverse proxy that replaces content in the body"
+license=('Custom')
+arch=('i686' 'x86_64')
+makedepends=('git' 'go')
+_gitroot="git@github.com:xil-se/Webscale.git"
+_gitname="Webscale"
+
+build() {
+  cd "$srcdir"
+  msg "Connecting to GIT server...."
+
+  if [ -d $_gitname ] ; then
+    cd $_gitname && git pull origin
+    msg "The local files are updated."
+  else
+    git clone $_gitroot $_gitname
+  fi
+  cd ReverseProxy
+  make get
+  make
+  msg "GIT checkout done or server timeout"
+}
+package() {
+	install -D ${srcdir}/Webscale/ReverseProxy/xil-proxy.service ${pkgdir}/usr/lib/systemd/system/xil-proxy.service
+    install -D ${srcdir}/Webscale/ReverseProxy/bin/reverseproxy ${pkgdir}/usr/bin/xil-proxy
+}

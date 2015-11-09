@@ -1,0 +1,14 @@
+[Unit]
+Description=Start the xil proxy
+After=network-online.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/xil-proxy -config /etc/xil/config.toml
+KillMode=process
+Restart=always
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
+
