@@ -8,6 +8,12 @@ ExecStart=/usr/bin/xil-proxy -config /etc/xil/config.toml
 KillMode=process
 Restart=always
 PrivateTmp=yes
+InaccessibleDirectories=/home
+ReadOnlyDirectories=/etc
+ReadOnlyDirectories=/var
+ReadOnlyDirectories=/opt
+ReadOnlyDirectories=/usr
+
 
 [Install]
 WantedBy=multi-user.target
